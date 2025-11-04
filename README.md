@@ -15,10 +15,14 @@ Event Management API for organizing and managing events.
 # Clone and setup
 git clone https://github.com/kimashii-dan/event-hub.git
 cd event-hub/backend
+
+# Create environment file
 cp .env.example .env
 # Edit .env with your database credentials
 
-# Run application
+# Copy .env to docker directory and run application
+cp .env docker/.env
+cd docker
 docker compose up --build
 ```
 
@@ -58,7 +62,8 @@ DB_NAME=event_hub
 git checkout main && git pull origin main
 git checkout -b feature/initials-feature-name
 
-# Finish work
+# Finish work (from backend/docker directory)
+cd backend/docker
 git add . && git commit -m "feat: description"
 git push origin feature/initials-feature-name
 # Create PR on GitHub
@@ -71,6 +76,6 @@ git push origin feature/initials-feature-name
 
 ## Troubleshooting
 
-**Port conflicts**: Change ports in `.env` or `docker-compose.yaml`
-**Database issues**: Check `.env` values and run `docker compose logs db`
-**Build failures**: Run `docker compose down && docker compose up --build`
+**Port conflicts**: Change ports in `.env` or `docker/docker-compose.yaml`
+**Database issues**: Check `.env` values and run `docker compose logs db` (from `backend/docker/`)
+**Build failures**: Run `docker compose down && docker compose up --build` (from `backend/docker/`)
