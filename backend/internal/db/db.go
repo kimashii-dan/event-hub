@@ -44,7 +44,7 @@ func runMigrations(databaseURL string) {
 	log.Println("Running database migrations...")
 
 	m, err := migrate.New(
-		"file://migrations",
+		"file://internal/db/migrations",
 		databaseURL,
 	)
 	if err != nil {
