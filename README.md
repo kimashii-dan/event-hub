@@ -19,6 +19,7 @@ cp .env.example .env
 # Edit .env with your database credentials
 
 # Run application
+cd docker
 docker compose up --build
 ```
 

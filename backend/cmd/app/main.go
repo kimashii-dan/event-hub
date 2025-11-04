@@ -13,7 +13,7 @@ import (
 func main() {
 
 	if os.Getenv("ENV") != "production" {
-		if err := godotenv.Load(); err != nil {
+		if err := godotenv.Load("docker/.env"); err != nil {
 			log.Println("No .env file found, using system environment variables")
 		}
 	}
