@@ -4,20 +4,28 @@ import (
 	"fmt"
 	"regexp"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-// User entity
+// User entity with GORM tags
 type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // never expose in json
-	Name         string    `json:"name"`
-	Role         string    `json:"role"` // "user", "organizer", "admin" maybe for the future
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           string         `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	Email        string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"` // Never expose in JSON
+	Name         string         `gorm:"type:varchar(255);not null" json:"name"`
+	Role         string         `gorm:"type:varchar(20);not null;default:'user'" json:"role"` // "user", "organizer", "admin"
+	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"` // Soft delete support
 }
 
-// DTOs (Data Transfer Objects)
+// TableName specifies the table name for GORM
+func (User) TableName() string {
+	return "users"
+}
+
+// DTOs
 type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
@@ -35,7 +43,7 @@ type LoginResponse struct {
 	User      *User     `json:"user"`
 }
 
-// basic validation
+// Basic validation
 func (u *User) Validate() error {
 	if u.Email == "" {
 		return fmt.Errorf("email is required")
