@@ -1,1 +1,3 @@
-/backend/docker/.env
+/backend/docker/.env.env
+.env.local
+.idea/
