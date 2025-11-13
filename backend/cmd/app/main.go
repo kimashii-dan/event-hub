@@ -2,12 +2,15 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
+	"github.com/Fixsbreaker/event-hub/backend/internal/config"
+	"github.com/Fixsbreaker/event-hub/backend/internal/db"
+	"github.com/Fixsbreaker/event-hub/backend/internal/handler"
+	"github.com/Fixsbreaker/event-hub/backend/internal/repository"
+	"github.com/Fixsbreaker/event-hub/backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/Fixsbreaker/event-hub/backend/internal/db"
 )
 
 func main() {
@@ -18,22 +21,24 @@ func main() {
 		}
 	}
 
+	config := config.Load()
+
 	db.Connect()
 
-	router := gin.Default()
+	r := gin.Default()
 
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "EventHub initialized!",
-		})
-	})
+	userRepo := repository.NewUserRepository(db.DB)
 
-	port := os.Getenv("APP_PORT")
+	authService := service.NewAuthService(userRepo, config.JWTSecret, config.JWTExpirationTime)
+
+	handler.NewAuthHandler(r, authService)
+
+	port := config.ServerPort
 	if port == "" {
 		port = "8080"
 	}
 
-	if err := router.Run(":" + port); err != nil {
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 
