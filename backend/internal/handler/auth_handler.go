@@ -43,14 +43,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var body domain.LoginRequest
 
 	// bind request body
-	if c.ShouldBindJSON(&body) != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.BadRequest(c, "failed to read body")
+		return
 	}
 
 	// user authService to login user
 	loginResponse, err := h.authService.Login(&body)
 	if err != nil {
 		response.BadRequest(c, err.Error())
+		return
 	}
 
 	// return login response
