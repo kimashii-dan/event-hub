@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/Fixsbreaker/event-hub/backend/internal/config"
-	"github.com/Fixsbreaker/event-hub/backend/internal/db"
+	"github.com/Fixsbreaker/event-hub/backend/internal/database"
 	"github.com/Fixsbreaker/event-hub/backend/internal/handler"
 	"github.com/Fixsbreaker/event-hub/backend/internal/middleware"
 	"github.com/Fixsbreaker/event-hub/backend/internal/repository"
@@ -27,7 +27,7 @@ func main() {
 	cfg := config.Load()
 
 	// подключение к БД + миграции
-	db.Connect()
+	dbConn := database.Connect(cfg)
 
 	r := gin.Default()
 
@@ -43,13 +43,13 @@ func main() {
 
 	// auth
 
-	userRepo := repository.NewUserRepository(db.DB)
+	userRepo := repository.NewUserRepository(dbConn)
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.JWTExpirationTime)
 	handler.NewAuthHandler(r, authService)
 
 	// events
 
-	eventRepo := repository.NewEventRepository(db.DB)
+	eventRepo := repository.NewEventRepository(dbConn)
 	eventService := service.NewEventService(eventRepo)
 	authMW := middleware.Auth(cfg.JWTSecret)
 
@@ -66,4 +66,3 @@ func main() {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
-
