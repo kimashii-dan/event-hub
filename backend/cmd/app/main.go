@@ -55,6 +55,12 @@ func main() {
 
 	handler.NewEventHandler(r, eventService, authMW)
 
+	// registrations
+
+	regRepo := repository.NewRegistrationRepository(dbConn)
+	regService := service.NewRegistrationService(regRepo, eventRepo)
+	handler.NewRegistrationHandler(r, regService, authMW)
+
 	// start server
 
 	port := cfg.ServerPort
