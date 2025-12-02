@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS registrations (
     status VARCHAR(20) NOT NULL DEFAULT 'confirmed', -- confirmed, cancelled
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    deleted_at TIMESTAMP WITH TIME ZONE,
     UNIQUE(user_id, event_id) -- Prevent double registration
 );
 

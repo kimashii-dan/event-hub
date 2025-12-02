@@ -24,6 +24,12 @@ func NewRegistrationHandler(r *gin.Engine, regService *service.RegistrationServi
 
 	// Get my registrations
 	protected.GET("/users/me/registrations", h.GetMyRegistrations)
+
+	// Check in attendee
+	protected.PATCH("/events/:id/check/:attendee_id", h.CheckIn)
+
+	// Get event registrants (organizer only), you can also filter with "?status=all/checked_in/confirmed/cancelled"
+	protected.GET("/events/:id/registrants", h.GetEventRegistrants)
 }
 
 // POST /events/:id/register
@@ -86,4 +92,73 @@ func (h *RegistrationHandler) GetMyRegistrations(c *gin.Context) {
 	}
 
 	response.Success(c, 200, regs)
+}
+
+// Mark attendee that he/she actually physically attends the event
+func (h *RegistrationHandler) CheckIn(c *gin.Context) {
+	eventID := c.Param("id")
+	if eventID == "" {
+		response.BadRequest(c, "missing event id")
+		return
+	}
+
+	attendeeID := c.Param("attendee_id")
+	if attendeeID == "" {
+		response.BadRequest(c, "missing attendee id")
+		return
+	}
+
+	organizerID, ok := getUserIDFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "unauthorized")
+		return
+	}
+
+	if err := h.regService.CheckInAttendee(organizerID, eventID, attendeeID); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.SuccessWithMessage(c, 200, "attendee checked in successfully")
+}
+
+// GET /events/:id/registrants
+func (h *RegistrationHandler) GetEventRegistrants(c *gin.Context) {
+	eventID := c.Param("id")
+	if eventID == "" {
+		response.BadRequest(c, "missing event id")
+		return
+	}
+
+	organizerID, ok := getUserIDFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "unauthorized")
+		return
+	}
+
+	// Get status filter from query parameter
+	status := c.Query("status")
+	if status == "" {
+		status = "all"
+	}
+
+	// Validate status parameter
+	validStatuses := map[string]bool{
+		"all":        true,
+		"confirmed":  true,
+		"cancelled":  true,
+		"checked_in": true,
+	}
+	if !validStatuses[status] {
+		response.BadRequest(c, "invalid status filter. Valid values: all, confirmed, cancelled, checked_in")
+		return
+	}
+
+	registrants, err := h.regService.GetEventRegistrants(organizerID, eventID, status)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, 200, registrants)
 }

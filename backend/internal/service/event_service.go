@@ -141,6 +141,48 @@ func (s *EventService) GetAllEvents() ([]domain.Event, error) {
 	return events, nil
 }
 
+// GetEvents returns events with optional pagination and filters
+func (s *EventService) GetEvents(req *domain.EventQueryRequest) (*domain.EventsResponse, error) {
+	// Set defaults
+	if req.PageSize < 1 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 20 {
+		req.PageSize = 20
+	}
+	if req.Page < 1 {
+		req.Page = 1
+	}
+
+	// Basic validation
+	if req.StartDateFrom != nil && req.StartDateTo != nil && req.StartDateTo.Before(*req.StartDateFrom) {
+		return nil, fmt.Errorf("start_date_to must be after start_date_from")
+	}
+	if req.MinCapacity != nil && req.MaxCapacity != nil && *req.MaxCapacity < *req.MinCapacity {
+		return nil, fmt.Errorf("max_capacity must be greater than or equal to min_capacity")
+	}
+
+	// Get events
+	events, total, err := s.eventRepo.GetEvents(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get events: %w", err)
+	}
+
+	// Build response
+	totalPages := int((total + int64(req.PageSize) - 1) / int64(req.PageSize))
+	response := &domain.EventsResponse{
+		Events: events,
+		Pagination: &domain.PaginationResponse{
+			Page:       req.Page,
+			PageSize:   req.PageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
+	}
+
+	return response, nil
+}
+
 // delete event
 func (s *EventService) DeleteEvent(userID string, eventID string) error {
 	if err := s.eventRepo.Delete(userID, eventID); err != nil {

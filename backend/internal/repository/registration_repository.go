@@ -77,3 +77,36 @@ func (r *RegistrationRepository) CountByEvent(eventID string) (int64, error) {
 	}
 	return count, nil
 }
+
+func (r *RegistrationRepository) CheckIn(userID, eventID string) error {
+	result := r.db.Model(&domain.Registration{}).
+		Where("user_id = ? AND event_id = ?", userID, eventID).
+		Update("status", "checked_in")
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to check in registration: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("registration not found")
+	}
+	return nil
+}
+
+// GetEventRegistrants gets all registrations for an event with user details
+func (r *RegistrationRepository) GetEventRegistrants(eventID string, status string) ([]domain.Registration, error) {
+	var registrations []domain.Registration
+
+	query := r.db.Preload("User").Where("event_id = ?", eventID)
+
+	// Filter by status if provided
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
+	}
+
+	result := query.Find(&registrations)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get event registrants: %w", result.Error)
+	}
+
+	return registrations, nil
+}

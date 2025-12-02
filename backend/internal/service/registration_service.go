@@ -80,3 +80,60 @@ func (s *RegistrationService) CancelRegistration(userID, eventID string) error {
 func (s *RegistrationService) GetUserRegistrations(userID string) ([]domain.Registration, error) {
 	return s.regRepo.GetUserRegistrations(userID)
 }
+
+// CheckInAttendee marks user's attendance (organizer initiative)
+func (s *RegistrationService) CheckInAttendee(organizerID, eventID, attendeeID string) error {
+
+	// 1. Check if event exists and user is the organizer
+	event, err := s.eventRepo.GetByID(eventID)
+	if err != nil {
+		return fmt.Errorf("event not found")
+	}
+
+	if event.OrganizerID != organizerID {
+		return fmt.Errorf("only the event organizer can check-in attendees")
+	}
+
+	// 2. Get the registration to verify it exists and is confirmed
+	registration, err := s.regRepo.GetByUserAndEvent(attendeeID, eventID)
+	if err != nil {
+		return fmt.Errorf("failed to get registration: %w", err)
+	}
+	if registration == nil {
+		return fmt.Errorf("registration not found")
+	}
+
+	// 3. Check if registration is in confirmed status
+	if registration.Status != "confirmed" {
+		return fmt.Errorf("can only check-in confirmed registrations (current status: %s)", registration.Status)
+	}
+
+	// 4. Update status to checked_in
+	if err := s.regRepo.CheckIn(attendeeID, eventID); err != nil {
+		return fmt.Errorf("failed to check-in attendee: %w", err)
+	}
+
+	return nil
+}
+
+// GetEventRegistrants returns all registrants for a specific event (organizer only)
+func (s *RegistrationService) GetEventRegistrants(organizerID, eventID, status string) ([]domain.Registration, error) {
+
+	// 1. Check if event exists and user is the organizer
+	event, err := s.eventRepo.GetByID(eventID)
+	if err != nil {
+		return nil, fmt.Errorf("event not found")
+	}
+
+	if event.OrganizerID != organizerID {
+		return nil, fmt.Errorf("only the event organizer can view registrants")
+	}
+
+	// 2. Get registrations with filtering
+	registrations, err := s.regRepo.GetEventRegistrants(eventID, status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get event registrants: %w", err)
+	}
+
+	return registrations, nil
+}

@@ -64,3 +64,41 @@ func (e *Event) Validate() error {
 	}
 	return nil
 }
+
+// Pagination structures
+type PaginationRequest struct {
+	Page     int `form:"page" binding:"omitempty,min=1"`
+	PageSize int `form:"page_size" binding:"omitempty,min=1,max=100"`
+}
+
+type PaginationResponse struct {
+	Page       int   `json:"page"`
+	PageSize   int   `json:"page_size"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
+}
+
+type EventsResponse struct {
+	Events     []Event             `json:"events"`
+	Pagination *PaginationResponse `json:"pagination"`
+}
+
+type EventQueryRequest struct {
+	// Pagination
+	Page     int `form:"page" binding:"omitempty,min=1"`
+	PageSize int `form:"page_size" binding:"omitempty,min=1,max=20"`
+
+	// Date filters
+	StartDateFrom *time.Time `form:"start_date_from" time_format:"2006-01-02"`
+	StartDateTo   *time.Time `form:"start_date_to" time_format:"2006-01-02"`
+
+	// Capacity filters
+	MinCapacity *int `form:"min_capacity" binding:"omitempty,min=1"`
+	MaxCapacity *int `form:"max_capacity" binding:"omitempty,min=1"`
+
+	// Maybe future filters:
+	// Status     string `form:"status"`
+	// Location   string `form:"location"`
+	// SortBy     string `form:"sort_by"`
+	// SortOrder  string `form:"sort_order"`
+}
