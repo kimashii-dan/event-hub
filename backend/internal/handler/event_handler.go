@@ -24,6 +24,10 @@ func NewEventHandler(
 
 	// Публичные роуты (чтобы смотреть события без авторизации)
 	public := r.Group("/events")
+
+	// Endpoint for getting all events, but you can also add query parameters:
+	// pagination with page and page size
+	// filtering with CAPACITY - min/max_capacity and DATE - state_date_from/start_date_to
 	public.GET("", h.GetAllEvents)
 	public.GET("/:id", h.GetEventByID)
 
@@ -175,13 +179,38 @@ func (h *EventHandler) CancelEvent(c *gin.Context) {
 
 // GET /events  (public)
 func (h *EventHandler) GetAllEvents(c *gin.Context) {
-	events, err := h.eventService.GetAllEvents()
-	if err != nil {
-		response.InternalServerError(c, err.Error())
+	var queryReq domain.EventQueryRequest
+
+	// 1. Bind query parameters
+	if err := c.ShouldBindQuery(&queryReq); err != nil {
+		response.BadRequest(c, "invalid query parameters")
 		return
 	}
 
-	response.Success(c, 200, events)
+	// 2. Check if any parameters provided
+	hasParams := queryReq.Page > 0 || queryReq.PageSize > 0 ||
+		queryReq.StartDateFrom != nil || queryReq.StartDateTo != nil ||
+		queryReq.MinCapacity != nil || queryReq.MaxCapacity != nil
+
+	// 3. If no parameters, return all events for backward compatibility
+	if !hasParams {
+		events, err := h.eventService.GetAllEvents()
+		if err != nil {
+			response.InternalServerError(c, err.Error())
+			return
+		}
+		response.Success(c, 200, events)
+		return
+	}
+
+	// 4. Use generic query method
+	eventsResponse, err := h.eventService.GetEvents(&queryReq)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, 200, eventsResponse)
 }
 
 // GET /events/:id  (public)
