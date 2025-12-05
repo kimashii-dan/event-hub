@@ -17,8 +17,7 @@ func setupInMemoryDB(t *testing.T) *gorm.DB {
 		t.Fatalf("failed to open in-memory sqlite: %v", err)
 	}
 
-	// Создаём простую sqlite-совместимую таблицу users вручную.
-	// Поля взяты из вашей миграции: id, email, password_hash, name, role, timestamps, deleted_at.
+	// Creating a simple sqlite-compatible users table manually.
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS users (
 		id TEXT PRIMARY KEY,
@@ -42,7 +41,6 @@ func TestUserRepository_Create_GetByEmail_GetByID_EmailExists_Update_Delete_GetA
 	db := setupInMemoryDB(t)
 	repo := repository.NewUserRepository(db)
 
-	// Заполняем обязательные поля модели domain.User (на основе колонок в миграции)
 	u := &domain.User{
 		ID:           uuid.NewString(),
 		Email:        "test@example.com",
@@ -83,7 +81,7 @@ func TestUserRepository_Create_GetByEmail_GetByID_EmailExists_Update_Delete_GetA
 		t.Fatalf("expected email to exist")
 	}
 
-	// Update (без изменений — просто проверить отсутствие ошибки)
+	// Update (no changes — just check if there is no error)
 	if err := repo.Update(gotByID); err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}

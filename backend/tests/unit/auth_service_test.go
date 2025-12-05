@@ -8,8 +8,8 @@ import (
 	"github.com/Fixsbreaker/event-hub/backend/internal/service"
 )
 
-// Используем уже существующий setupAuthRepo(t *testing.T) из setup.go,
-// он возвращает *repository.UserRepository (in-memory sqlite).
+// Using the already existing setupAuthRepo(t *testing.T) from setup.go,
+// it returns *repository.UserRepository (in-memory sqlite).
 func setupAuthServiceWithRealRepo(t *testing.T) *service.AuthService {
 	repo := setupAuthRepo(t) // из setup.go
 	jwtSecret := "test-secret"
@@ -54,7 +54,7 @@ func TestAuthService_Register(t *testing.T) {
 func TestAuthService_Login(t *testing.T) {
 	svc := setupAuthServiceWithRealRepo(t)
 
-	// Сначала регистрируем пользователя
+	// First, register the user
 	email := "loginuser@example.com"
 	password := "password123"
 	_, _ = svc.Register(&domain.CreateUserRequest{

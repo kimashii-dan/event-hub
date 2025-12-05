@@ -34,27 +34,27 @@ func setupRouter(t *testing.T) *testContext {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	// Создаем in-memory SQLite БД
+	// Creating an in-memory SQLite database
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("Failed to open in-memory database: %v", err)
 	}
 
-	// Создаем таблицы
+	// Creating tables
 	setupTables(t, db)
 
-	// Создаем РЕАЛЬНЫЕ репозитории (они работают с in-memory БД)
+	// Сreate REAL repositories (they work with in-memory databases)
 	userRepo := repository.NewUserRepository(db)
 	eventRepo := repository.NewEventRepository(db)
 
-	// Для Registration нужна таблица и репозиторий
+	// Registration requires a table and a repository.
 	regRepo := setupRegistrationRepo(t, db)
 
-	// Создаем сервисы с РЕАЛЬНЫМИ репозиториями
+	// Creating services with REAL repositories
 	authService := service.NewAuthService(userRepo, "test-secret", time.Hour)
 	regService := service.NewRegistrationService(regRepo, eventRepo)
 
-	// Регистрируем handlers
+	// Registering handlers
 	handler.NewAuthHandler(r, authService)
 	handler.NewRegistrationHandler(r, regService, middleware.Auth("test-secret"))
 
@@ -265,12 +265,11 @@ func TestRegisterEvent_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	ctx.router.ServeHTTP(w, req)
 
-	// Проверяем только HTTP статус
+	// Check the HTTP status
 	if w.Code != http.StatusCreated {
 		t.Errorf("Expected 201 Created, got %d. Body: %s", w.Code, w.Body.String())
 	}
 
-	// Если хочешь, можно ещё проверить, что тело не пустое
 	if len(w.Body.Bytes()) == 0 {
 		t.Error("Expected non-empty response body")
 	}
@@ -296,7 +295,7 @@ func TestRegisterEvent_DuplicateRegistration(t *testing.T) {
 	event := createTestEvent(t, ctx.eventRepo, "organizer-123")
 	token := registerAndLogin(t, ctx.router, "user3@example.com", "password123", "Test User 3")
 
-	// Первая регистрация
+	// First registration
 	req := httptest.NewRequest("POST", "/events/"+event.ID+"/register", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
@@ -307,7 +306,7 @@ func TestRegisterEvent_DuplicateRegistration(t *testing.T) {
 			w.Code, w.Body.String())
 	}
 
-	// Вторая регистрация (дубликат)
+	// Second registration (duplicate)
 	req = httptest.NewRequest("POST", "/events/"+event.ID+"/register", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	w = httptest.NewRecorder()
