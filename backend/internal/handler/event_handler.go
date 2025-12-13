@@ -188,10 +188,12 @@ func (h *EventHandler) GetAllEvents(c *gin.Context) {
 	}
 
 	// 2. Check if any parameters provided
+	// Added new filters & sorting fields to hasParams check
 	hasParams := queryReq.Page > 0 || queryReq.PageSize > 0 ||
 		queryReq.StartDateFrom != nil || queryReq.StartDateTo != nil ||
-		queryReq.MinCapacity != nil || queryReq.MaxCapacity != nil
-
+		queryReq.MinCapacity != nil || queryReq.MaxCapacity != nil ||
+		queryReq.Status != "" || queryReq.Location != "" || queryReq.Keyword != "" ||
+		queryReq.OrganizerID != "" || queryReq.UpcomingOnly || queryReq.PastOnly || queryReq.SortBy != ""
 	// 3. If no parameters, return all events for backward compatibility
 	if !hasParams {
 		events, err := h.eventService.GetAllEvents()
@@ -204,6 +206,7 @@ func (h *EventHandler) GetAllEvents(c *gin.Context) {
 	}
 
 	// 4. Use generic query method
+	// This calls EventService.GetEvents which applies all filter and sort logic
 	eventsResponse, err := h.eventService.GetEvents(&queryReq)
 	if err != nil {
 		response.BadRequest(c, err.Error())

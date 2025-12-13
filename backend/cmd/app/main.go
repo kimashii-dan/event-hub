@@ -61,6 +61,10 @@ func main() {
 	regService := service.NewRegistrationService(regRepo, eventRepo)
 	handler.NewRegistrationHandler(r, regService, authMW)
 
+	// users
+	userService := service.NewUserService(userRepo)
+	handler.NewUserHandler(r, userService, authMW)
+
 	// start server
 
 	port := cfg.ServerPort

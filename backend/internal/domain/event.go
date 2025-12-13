@@ -96,9 +96,16 @@ type EventQueryRequest struct {
 	MinCapacity *int `form:"min_capacity" binding:"omitempty,min=1"`
 	MaxCapacity *int `form:"max_capacity" binding:"omitempty,min=1"`
 
-	// Maybe future filters:
-	// Status     string `form:"status"`
-	// Location   string `form:"location"`
-	// SortBy     string `form:"sort_by"`
-	// SortOrder  string `form:"sort_order"`
+	// New filters
+	Title        string `form:"title"`
+	Status       string `form:"status"`
+	Location     string `form:"location"`
+	Keyword      string `form:"keyword"`
+	OrganizerID  string `form:"organizer_id"`
+	UpcomingOnly bool   `form:"upcoming_only"`
+	PastOnly     bool   `form:"past_only"`
+
+	// Sorting
+	SortBy    string `form:"sort_by"`
+	SortOrder string `form:"sort_order"`
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Fixsbreaker/event-hub/backend/internal/domain"
 	"gorm.io/gorm"
@@ -105,6 +106,42 @@ func (r *EventRepository) GetEvents(req *domain.EventQueryRequest) ([]domain.Eve
 		query = query.Where("capacity <= ?", *req.MaxCapacity)
 	}
 
+	// --- NEW FILTERS ---
+	if req.Title != "" {
+		query = query.Where("title LIKE ?", "%"+req.Title+"%") // поиск по заголовку
+	}
+	if req.Status != "" {
+		query = query.Where("status = ?", req.Status)
+	}
+	if req.Location != "" {
+		query = query.Where("location = ?", req.Location)
+	}
+	if req.OrganizerID != "" {
+		query = query.Where("organizer_id = ?", req.OrganizerID)
+	}
+	if req.Keyword != "" {
+		query = query.Where("description LIKE ?", "%"+req.Keyword+"%") // поиск по описанию
+	}
+	if req.UpcomingOnly {
+		query = query.Where("start_datetime >= ?", time.Now())
+	}
+	if req.PastOnly {
+		query = query.Where("end_datetime <= ?", time.Now())
+	}
+
+	// --- NEW SORTING ---
+	sortColumn := "created_at"
+	if req.SortBy != "" {
+		sortColumn = req.SortBy
+	}
+
+	sortDirection := "DESC"
+	if req.SortOrder == "asc" || req.SortOrder == "ASC" {
+		sortDirection = "ASC"
+	}
+
+	query = query.Order(fmt.Sprintf("%s %s", sortColumn, sortDirection))
+
 	// Count total records
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count events: %w", err)
@@ -127,11 +164,9 @@ func (r *EventRepository) GetEvents(req *domain.EventQueryRequest) ([]domain.Eve
 		query = query.Offset(offset).Limit(pageSize)
 	}
 
-	// Default ordering
-	result := query.Order("created_at DESC").Find(&events)
-	if result.Error != nil {
-		return nil, 0, fmt.Errorf("failed to get events: %w", result.Error)
+	// --- EXECUTE QUERY ---
+	if err := query.Find(&events).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to fetch events: %w", err)
 	}
-
 	return events, total, nil
 }
