@@ -65,6 +65,11 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	handler.NewUserHandler(r, userService, authMW)
 
+	// notifications
+	notificationRepo := repository.NewNotificationRepository(dbConn)
+	notificationService := service.NewNotificationService(notificationRepo)
+	handler.NewNotificationHandler(r, notificationService, authMW)
+
 	// start server
 
 	port := cfg.ServerPort
