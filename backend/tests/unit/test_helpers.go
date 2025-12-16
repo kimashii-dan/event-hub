@@ -1,5 +1,4 @@
-// backend/tests/unit/test_helpers.go
-// Общие helper функции для unit и integration тестов
+// Common helper functions for unit and integration tests
 package unit
 
 import (
@@ -10,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// SetupAuthRepo создаёт in-memory БД для тестирования auth
+// SetupAuthRepo creates an in-memory DB and returns a UserRepository for auth tests.
 func SetupAuthRepo(t *testing.T) *repository.UserRepository {
 	t.Helper()
 
@@ -38,7 +37,7 @@ func SetupAuthRepo(t *testing.T) *repository.UserRepository {
 	return repository.NewUserRepository(db)
 }
 
-// SetupEventRepo создаёт in-memory БД для тестирования events
+// SetupEventRepo creates an in-memory DB and returns an EventRepository for event tests.
 func SetupEventRepo(t *testing.T) *repository.EventRepository {
 	t.Helper()
 
@@ -67,7 +66,7 @@ func SetupEventRepo(t *testing.T) *repository.EventRepository {
 	return repository.NewEventRepository(db)
 }
 
-// SetupTestDB создаёт универсальную in-memory БД
+// SetupTestDB creates a generic in-memory DB for custom table setup.
 func SetupTestDB(t *testing.T, tables ...string) *gorm.DB {
 	t.Helper()
 

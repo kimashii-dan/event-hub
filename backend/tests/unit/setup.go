@@ -14,17 +14,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// SetupAuthRepo создаёт in-memory SQLite DB и возвращает *repository.UserRepository
-// Не трогаем продовой код — здесь создаём sqlite-совместимую таблицу вручную,
-// чтобы избежать SQL с uuid_generate_v4(), который не поддерживает sqlite.
+// setupAuthRepo creates an in-memory SQLite DB and returns a UserRepository.
 func setupAuthRepo(t *testing.T) *repository.UserRepository {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect to sqlite in-memory DB: %v", err)
 	}
 
-	// Если используем sqlite — создаём таблицу users вручную (sqlite-совместимая схема).
-	// Это предотвращает генерацию Postgres-специфичных выражений типа uuid_generate_v4().
+	// Create the users table manually for SQLite compatibility.
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS users (
 		id TEXT PRIMARY KEY,
@@ -41,15 +38,12 @@ func setupAuthRepo(t *testing.T) *repository.UserRepository {
 		t.Fatalf("failed to create users table (sqlite): %v", err)
 	}
 
-	// Если в проекте есть дополнительные миграции/индексы, можно добавить их здесь.
-	// Например: db.Exec("CREATE INDEX idx_users_email ON users(email);")
-
-	// Теперь создаём реальный репозиторий, который использует это DB.
+	// Return a repository using this DB.
 	repo := repository.NewUserRepository(db)
 	return repo
 }
 
-// Вспомогательная функция для создания тестового пользователя
+// createTestUser creates and saves a test user in the repository.
 func createTestUser(repo *repository.UserRepository, email, password, name string) *domain.User {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	user := &domain.User{
