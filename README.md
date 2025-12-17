@@ -3,7 +3,6 @@
 > A modern, RESTful API for event management built with Go, enabling organizers to create, manage, and publish events while users can discover and register for events.
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
 
 ## 📋 Table of Contents
@@ -17,18 +16,18 @@
 - [Contributing](#-contributing)
 - [Documentation](#-documentation)
 
-## ✨ Features
+##  Features
 
-- 🔐 **Secure Authentication**: JWT-based authentication with role-based access control
-- 📅 **Event Management**: Create, update, publish, and cancel events with comprehensive metadata
-- 👥 **User Registration**: Users can register for events with capacity management
-- 🔍 **Advanced Filtering**: Search and filter events by date, capacity, and status
-- 📄 **Pagination**: Efficient data retrieval with configurable page sizes
-- 🐳 **Docker Support**: Fully containerized with Docker Compose for easy deployment
-- 🧪 **Comprehensive Testing**: Unit and integration tests for reliability
-- 📊 **Health Checks**: Built-in endpoint for monitoring application status
+-  **Secure Authentication**: JWT-based authentication with role-based access control
+-  **Event Management**: Create, update, publish, and cancel events with comprehensive metadata
+-  **User Registration**: Users can register for events with capacity management
+-  **Advanced Filtering**: Search and filter events by date, capacity, and status
+-  **Pagination**: Efficient data retrieval with configurable page sizes
+-  **Docker Support**: Fully containerized with Docker Compose for easy deployment
+-  **Comprehensive Testing**: Unit and integration tests for reliability
+-  **Health Checks**: Built-in endpoint for monitoring application status
 
-## 🏗 Architecture
+##  Architecture
 
 Event Hub follows **Clean Architecture** principles with clear separation of concerns:
 
@@ -58,7 +57,7 @@ backend/
 - **Containerization**: Docker & Docker Compose
 - **Testing**: Go testing framework with testify
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -82,7 +81,7 @@ cd docker
 docker compose up --build
 ```
 
-🎉 **Application is running at**: `http://localhost:8000`
+ **Application is running at**: `http://localhost:8000`
 
 ### Environment Configuration
 
@@ -104,7 +103,7 @@ JWT_SECRET=your_jwt_secret_key_min_32_chars
 JWT_EXPIRATION_TIME=24h
 ```
 
-> ⚠️ **Security Note**: Always use strong, unique values for `DB_PASSWORD` and `JWT_SECRET` in production!
+>  **Security Note**: Always use strong, unique values for `DB_PASSWORD` and `JWT_SECRET` in production!
 
 ## 📚 API Documentation
 
@@ -535,143 +534,3 @@ git add . && git commit -m "feat: description"
 git push origin feature/initials-feature-name
 # Create PR on GitHub
 ```
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-### Git Workflow
-
-#### Branch Naming Conventions
-
-- **Feature**: `feature/initials-short-description`
-  - Example: `feature/jd-event-filtering`
-- **Bug Fix**: `bugfix/initials-issue-description`
-  - Example: `bugfix/jd-registration-validation`
-- **Hotfix**: `hotfix/initials-critical-fix`
-  - Example: `hotfix/jd-auth-security`
-- **Documentation**: `docs/initials-what-docs`
-  - Example: `docs/jd-api-endpoints`
-
-#### Development Process
-
-1. **Create feature branch**
-   ```bash
-   git checkout -b feature/your-initials-feature-name
-   ```
-
-2. **Make changes following code style guidelines**
-   - Write tests for new features
-   - Update documentation
-   - Follow Go conventions and Clean Architecture
-
-3. **Commit with conventional commits**
-   ```bash
-   git commit -m "feat: add event filtering by date range"
-   git commit -m "fix: resolve registration capacity overflow"
-   git commit -m "docs: update API documentation"
-   ```
-
-   **Commit types:**
-   - `feat`: New feature
-   - `fix`: Bug fix
-   - `docs`: Documentation changes
-   - `style`: Code style changes (formatting)
-   - `refactor`: Code refactoring
-   - `test`: Adding or updating tests
-   - `chore`: Maintenance tasks
-
-4. **Push and create Pull Request**
-   ```bash
-   git push origin feature/your-initials-feature-name
-   ```
-   - Create PR on GitHub
-   - Provide clear description of changes
-   - Link related issues
-
-5. **Code Review & Merge**
-   - Team lead reviews the PR
-   - Address feedback and make changes if needed
-   - Once approved, team lead merges to `main`
-
-### Pull Request Checklist
-
-- [ ] Code follows project style guidelines
-- [ ] All tests pass (`go test ./...`)
-- [ ] New features include tests
-- [ ] Documentation updated (README, code comments)
-- [ ] No breaking changes (or clearly documented)
-- [ ] Commit messages follow conventional commits
-- [ ] Branch is up to date with `main`
-
-## Database
-
-- **PostgreSQL 15** with golang/migrate
-- **ORM**: GORM
-
-## ❗ Troubleshooting
-
-**Port conflicts**: Change ports in `.env` or `docker-compose.yaml`
-**Database issues**: Check `.env` values and run `docker compose logs db`
-**Build failures**: Run `docker compose down && docker compose up --build`
-
-## 📝 License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
-
-## � Documentation
-
-Comprehensive documentation is available in the `/docs` directory:
-
-| Document | Description |
-|----------|-------------|
-| **[Documentation Index](./docs/README.md)** | Complete documentation overview and navigation |
-| **[API Reference](./docs/API.md)** | Detailed REST API documentation with examples |
-| **[Architecture Guide](./docs/ARCHITECTURE.md)** | System design, patterns, and technical decisions |
-| **[Developer Guide](./docs/DEVELOPER_GUIDE.md)** | Development workflow, coding standards, testing |
-| **[Deployment Guide](./docs/DEPLOYMENT.md)** | Production deployment for various platforms |
-
-### Quick Links
-
-- 🚀 **New to the project?** Start with [Quick Start](#-quick-start)
-- 🔌 **Integrating the API?** Check [API Documentation](./docs/API.md)
-- 💻 **Contributing code?** Read [Developer Guide](./docs/DEVELOPER_GUIDE.md)
-- 🚢 **Deploying to production?** See [Deployment Guide](./docs/DEPLOYMENT.md)
-- 🏗 **Understanding the system?** Review [Architecture](./docs/ARCHITECTURE.md)
-
-## �👥 Team
-
-**Event Hub Development Team**
-- Repository: [github.com/kimashii-dan/event-hub](https://github.com/kimashii-dan/event-hub)
-
-## 🆘 Support & Contact
-
-- **Issues**: [GitHub Issues](https://github.com/kimashii-dan/event-hub/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/kimashii-dan/event-hub/discussions)
-- **Documentation**: [docs/README.md](./docs/README.md)
-
-## 🗺 Roadmap
-
-### Current Version (v1.0)
-- ✅ User authentication & authorization
-- ✅ Event CRUD operations
-- ✅ Event registration system
-- ✅ Advanced filtering & pagination
-- ✅ Docker deployment
-- ✅ Comprehensive documentation
-
-### Planned Features (v2.0)
-- [ ] Email notifications for event updates
-- [ ] Event categories and tags
-- [ ] Advanced search with full-text search
-- [ ] Event attendee management dashboard
-- [ ] Export registrations to CSV
-- [ ] Event analytics and reports
-- [ ] Webhook support for integrations
-- [ ] Rate limiting and API throttling
-
----
-
-**Built with ❤️ using Go, PostgreSQL, and Docker**
-
-**📖 [View Full Documentation](./docs/README.md)** | **🐛 [Report Issues](https://github.com/kimashii-dan/event-hub/issues)** | **💬 [Join Discussions](https://github.com/kimashii-dan/event-hub/discussions)**
