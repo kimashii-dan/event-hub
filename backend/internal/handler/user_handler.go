@@ -19,25 +19,32 @@ func NewUserHandler(r *gin.Engine, userService *service.UserService, authMiddlew
 	protected := r.Group("/users")
 	protected.Use(authMiddleware)
 
-	// PATCH /users/:id
-	protected.PATCH("/:id", h.UpdateUser)
+	protected.GET("/me", h.GetMe)
+	protected.PATCH("/me", h.UpdateMe)
 }
 
-// UpdateUser handler
-func (h *UserHandler) UpdateUser(c *gin.Context) {
-	userID := c.Param("id")
-	if userID == "" {
-		response.BadRequest(c, "missing user id")
-		return
-	}
+func (h *UserHandler) UpdateMe(c *gin.Context) {
+	userID := c.GetString("userID") // из JWT
 
-	var req domain.CreateUserRequest
+	var req domain.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "invalid request body")
 		return
 	}
 
-	user, err := h.userService.UpdateUser(userID, &req)
+	user, err := h.userService.UpdateMe(userID, &req)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, user)
+}
+
+func (h *UserHandler) GetMe(c *gin.Context) {
+	userID := c.GetString("userID")
+
+	user, err := h.userService.GetMe(userID)
 	if err != nil {
 		response.BadRequest(c, err.Error())
 		return

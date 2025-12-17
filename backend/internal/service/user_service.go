@@ -57,3 +57,37 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hashed), nil
 }
+
+func (s *UserService) UpdateMe(userID string, req *domain.UpdateUserRequest) (*domain.User, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	if req.Name != nil {
+		user.Name = *req.Name
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+	if req.Password != nil {
+		hashed, err := HashPassword(*req.Password)
+		if err != nil {
+			return nil, err
+		}
+		user.PasswordHash = hashed
+	}
+
+	if err := s.userRepo.Update(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (s *UserService) GetMe(userID string) (*domain.User, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+	return user, nil
+}
