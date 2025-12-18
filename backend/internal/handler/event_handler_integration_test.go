@@ -50,7 +50,7 @@ func TestCreateAndGetEvents_Integration(t *testing.T) {
 
 	db := setupInMemoryDB(t)
 	repo := repository.NewEventRepository(db)
-	svc := service.NewEventService(repo)
+	svc := service.NewEventService(repo, nil)
 
 	h := &EventHandler{eventService: svc}
 
@@ -85,7 +85,7 @@ func TestGetAllEvents_Integration_EmptyAndMultiple(t *testing.T) {
 
 	db := setupInMemoryDB(t)
 	repo := repository.NewEventRepository(db)
-	svc := service.NewEventService(repo)
+	svc := service.NewEventService(repo, nil)
 	h := &EventHandler{eventService: svc}
 
 	rec := httptest.NewRecorder()

@@ -5,15 +5,20 @@ import (
 
 	"github.com/Fixsbreaker/event-hub/backend/internal/domain"
 	"github.com/Fixsbreaker/event-hub/backend/internal/repository"
+	"github.com/Fixsbreaker/event-hub/backend/internal/worker"
 	"github.com/google/uuid"
 )
 
 type NotificationService struct {
 	notificationRepo *repository.NotificationRepository
+	pool             *worker.WorkerPool
 }
 
-func NewNotificationService(repo *repository.NotificationRepository) *NotificationService {
-	return &NotificationService{notificationRepo: repo}
+func NewNotificationService(repo *repository.NotificationRepository, pool *worker.WorkerPool) *NotificationService {
+	return &NotificationService{
+		notificationRepo: repo,
+		pool:             pool,
+	}
 }
 
 // Отправка уведомления пользователю
@@ -29,6 +34,15 @@ func (s *NotificationService) SendNotification(userID string, req *domain.Create
 	if err := s.notificationRepo.Create(notification); err != nil {
 		return nil, err
 	}
+
+	// Async send
+	if s.pool != nil {
+		s.pool.Submit(worker.NotificationJob{
+			Notification: notification,
+			DestEmail:    "user@example.com", // Stub for now
+		})
+	}
+
 	return notification, nil
 }
 

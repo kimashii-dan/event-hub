@@ -12,6 +12,7 @@ import (
 	"github.com/Fixsbreaker/event-hub/backend/internal/middleware"
 	"github.com/Fixsbreaker/event-hub/backend/internal/repository"
 	"github.com/Fixsbreaker/event-hub/backend/internal/service"
+	"github.com/Fixsbreaker/event-hub/backend/internal/worker"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -29,7 +30,7 @@ func main() {
 
 	// подключение к БД + миграции
 	dbConn := database.Connect(cfg)
-	
+
 	// Redis
 	if err := database.ConnectRedis(cfg); err != nil {
 		log.Printf("Failed to connect to Redis: %v", err)
@@ -76,8 +77,14 @@ func main() {
 	handler.NewUserHandler(r, userService, authMW)
 
 	// notifications
+
+	// Create Worker Pool for notifications (5 workers, buffer 100)
+	notifWorkerPool := worker.NewWorkerPool(5, 100)
+	notifWorkerPool.Start()
+	defer notifWorkerPool.Stop() // Cleanup on exit
+
 	notificationRepo := repository.NewNotificationRepository(dbConn)
-	notificationService := service.NewNotificationService(notificationRepo)
+	notificationService := service.NewNotificationService(notificationRepo, notifWorkerPool)
 	handler.NewNotificationHandler(r, notificationService, authMW)
 
 	// start server
