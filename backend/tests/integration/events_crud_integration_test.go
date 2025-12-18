@@ -38,7 +38,7 @@ func setupEventServiceTest(t *testing.T) (*gorm.DB, *service.EventService, func(
 	}
 
 	eventRepo := repository.NewEventRepository(db)
-	eventService := service.NewEventService(eventRepo)
+	eventService := service.NewEventService(eventRepo, nil)
 
 	cleanup := func() {
 		sqlDB, _ := db.DB()

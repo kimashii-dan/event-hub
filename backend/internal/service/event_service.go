@@ -1,19 +1,25 @@
 package service
 
 import (
-	"fmt"
+	"context"
 
+	"fmt"
+	"time"
+
+	"github.com/Fixsbreaker/event-hub/backend/internal/cache"
 	"github.com/Fixsbreaker/event-hub/backend/internal/domain"
 	"github.com/Fixsbreaker/event-hub/backend/internal/repository"
 )
 
 type EventService struct {
 	eventRepo *repository.EventRepository
+	cache     *cache.RedisCache
 }
 
-func NewEventService(eventRepo *repository.EventRepository) *EventService {
+func NewEventService(eventRepo *repository.EventRepository, cache *cache.RedisCache) *EventService {
 	return &EventService{
 		eventRepo: eventRepo,
+		cache:     cache,
 	}
 }
 
@@ -104,6 +110,13 @@ func (s *EventService) UpdateEvent(userID string, eventID string, req *domain.Up
 		return nil, fmt.Errorf("failed to update event: %w", err)
 	}
 
+	// Invalidate cache
+	if s.cache != nil {
+		if err := s.cache.Delete(context.Background(), fmt.Sprintf("event:%s", eventID)); err != nil {
+			fmt.Printf("failed to invalidate cache for event %s: %v\n", eventID, err)
+		}
+	}
+
 	return event, nil
 }
 
@@ -112,6 +125,12 @@ func (s *EventService) PublishEvent(userID string, eventID string) error {
 	if err := s.eventRepo.UpdateStatus(userID, eventID, "published"); err != nil {
 		return fmt.Errorf("failed to publish event: %w", err)
 	}
+	
+	// Invalidate cache
+	if err := s.cache.Delete(context.Background(), fmt.Sprintf("event:%s", eventID)); err != nil {
+		fmt.Printf("failed to invalidate cache for event %s: %v\n", eventID, err)
+	}
+
 	return nil
 }
 
@@ -125,10 +144,30 @@ func (s *EventService) Cancel(userID string, eventID string) error {
 
 // get event by id
 func (s *EventService) GetEventByID(eventID string) (*domain.Event, error) {
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("event:%s", eventID)
+
+	// 1. Try Cache
+	var params domain.Event
+	if s.cache != nil {
+		if err := s.cache.Get(ctx, cacheKey, &params); err == nil {
+			return &params, nil
+		}
+	}
+
+	// 2. Fallback to DB
 	event, err := s.eventRepo.GetByID(eventID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get event: %w", err)
 	}
+
+	// 3. Set Cache (ignore error)
+	if s.cache != nil {
+		if err := s.cache.Set(ctx, cacheKey, event, 10*time.Minute); err != nil {
+			fmt.Printf("failed to set cache for event %s: %v\n", eventID, err)
+		}
+	}
+
 	return event, nil
 }
 
@@ -188,5 +227,13 @@ func (s *EventService) DeleteEvent(userID string, eventID string) error {
 	if err := s.eventRepo.Delete(userID, eventID); err != nil {
 		return fmt.Errorf("failed to delete event: %w", err)
 	}
+
+	// Invalidate cache
+	if s.cache != nil {
+		if err := s.cache.Delete(context.Background(), fmt.Sprintf("event:%s", eventID)); err != nil {
+			fmt.Printf("failed to invalidate cache for event %s: %v\n", eventID, err)
+		}
+	}
+
 	return nil
 }

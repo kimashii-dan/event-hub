@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Fixsbreaker/event-hub/backend/internal/cache"
 	"github.com/Fixsbreaker/event-hub/backend/internal/config"
 	"github.com/Fixsbreaker/event-hub/backend/internal/database"
 	"github.com/Fixsbreaker/event-hub/backend/internal/handler"
@@ -28,6 +29,15 @@ func main() {
 
 	// подключение к БД + миграции
 	dbConn := database.Connect(cfg)
+	
+	// Redis
+	if err := database.ConnectRedis(cfg); err != nil {
+		log.Printf("Failed to connect to Redis: %v", err)
+		// We might want to continue without cache or fail. For now, we continue but cache operations will fail/error out if not handled?
+		// Actually cache.NewRedisCache takes the client. If connection failed Rdb might be nil or we should handle it.
+		// database.ConnectRedis assigns to global Rdb.
+	}
+	redisCache := cache.NewRedisCache(database.Rdb)
 
 	r := gin.Default()
 
@@ -50,7 +60,7 @@ func main() {
 	// events
 
 	eventRepo := repository.NewEventRepository(dbConn)
-	eventService := service.NewEventService(eventRepo)
+	eventService := service.NewEventService(eventRepo, redisCache)
 	authMW := middleware.Auth(cfg.JWTSecret)
 
 	handler.NewEventHandler(r, eventService, authMW)

@@ -23,9 +23,9 @@ type Config struct {
 	JWTExpirationHours int
 	JWTExpirationTime  time.Duration
 
-	//// Redis (optional for now)
-	//RedisHost string
-	//RedisPort string
+	// Redis (optional for now)
+	RedisHost string
+	RedisPort string
 }
 
 func Load() *Config {
@@ -45,8 +45,8 @@ func Load() *Config {
 		JWTExpirationHours: jwtExpHours,
 		JWTExpirationTime:  time.Duration(jwtExpHours) * time.Hour,
 
-		//RedisHost: getEnv("REDIS_HOST", "localhost"),
-		//RedisPort: getEnv("REDIS_PORT", "6379"),
+		RedisHost: getEnv("REDIS_HOST", "localhost"),
+		RedisPort: getEnv("REDIS_PORT", "6379"),
 	}
 }
 
