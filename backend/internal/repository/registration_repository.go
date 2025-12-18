@@ -78,6 +78,38 @@ func (r *RegistrationRepository) CountByEvent(eventID string) (int64, error) {
 	return count, nil
 }
 
+// CreateWithCapacityCheck performs atomic registration with capacity check using a DB transaction
+func (r *RegistrationRepository) CreateWithCapacityCheck(registration *domain.Registration, capacity int) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// 1. Lock the Event row to serialize access (prevent concurrent inserts for this event)
+		// We query the EVENTS table to lock the specific event row.
+		// "FOR UPDATE" ensures other transactions waiting for this event must wait.
+		if err := tx.Exec("SELECT id FROM events WHERE id = ? FOR UPDATE", registration.EventID).Error; err != nil {
+			return fmt.Errorf("failed to lock event for registration: %w", err)
+		}
+
+		// 2. Count current confirmed registrations inside the transaction
+		var current int64
+		if err := tx.Model(&domain.Registration{}).
+			Where("event_id = ? AND status = ?", registration.EventID, "confirmed").
+			Count(&current).Error; err != nil {
+			return fmt.Errorf("failed to count registrations: %w", err)
+		}
+
+		// 3. Check Capacity
+		if int(current) >= capacity {
+			return fmt.Errorf("event is full (capacity reached)")
+		}
+
+		// 4. Create Registration
+		if err := tx.Create(registration).Error; err != nil {
+			return fmt.Errorf("failed to create registration: %w", err)
+		}
+
+		return nil
+	})
+}
+
 func (r *RegistrationRepository) CheckIn(userID, eventID string) error {
 	result := r.db.Model(&domain.Registration{}).
 		Where("user_id = ? AND event_id = ?", userID, eventID).

@@ -47,25 +47,18 @@ func (s *RegistrationService) RegisterUser(userID, eventID string) (*domain.Regi
 		return nil, fmt.Errorf("user already registered")
 	}
 
-	// 4. Check capacity
-	count, err := s.regRepo.CountByEvent(eventID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check capacity: %w", err)
-	}
+	// 4 & 5. Atomic Capacity Check and Creation
+	// We pass the registration object (with UserID, EventID, Status) and the capacity limit.
+	// The repository handles the locking and transaction.
 
-	if int(count) >= event.Capacity {
-		return nil, fmt.Errorf("event is full")
-	}
-
-	// 5. Create registration
 	registration := &domain.Registration{
 		UserID:  userID,
 		EventID: eventID,
 		Status:  "confirmed",
 	}
 
-	if err := s.regRepo.Create(registration); err != nil {
-		return nil, fmt.Errorf("failed to create registration: %w", err)
+	if err := s.regRepo.CreateWithCapacityCheck(registration, event.Capacity); err != nil {
+		return nil, err // error is already formatted in repo
 	}
 
 	return registration, nil
