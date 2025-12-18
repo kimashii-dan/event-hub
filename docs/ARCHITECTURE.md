@@ -84,8 +84,11 @@ backend/
 │   │
 │   ├── domain/                     # DOMAIN LAYER
 │   │   ├── user.go                 # User entity & DTOs
+│   │   ├── user_dto.go             # User update DTOs
 │   │   ├── event.go                # Event entity & DTOs
-│   │   └── registration.go         # Registration entity & DTOs
+│   │   ├── registration.go         # Registration entity & DTOs
+│   │   ├── notific.go              # Notification entity
+│   │   └── motific_dto.go          # Notification DTOs
 │   │                               # - Entities (structs)
 │   │                               # - Validation rules
 │   │                               # - DTOs for requests/responses
@@ -94,7 +97,8 @@ backend/
 │   │   ├── auth_handler.go         # Authentication endpoints
 │   │   ├── event_handler.go        # Event CRUD endpoints
 │   │   ├── registration_handler.go # Registration endpoints
-│   │   └── user_handler.go         # User profile endpoints
+│   │   ├── user_handler.go         # User profile endpoints
+│   │   └── notific_handler.go      # Notification endpoints
 │   │                               # - HTTP request/response handling
 │   │                               # - Input validation
 │   │                               # - Routing setup
@@ -108,7 +112,8 @@ backend/
 │   ├── repository/                 # INFRASTRUCTURE LAYER
 │   │   ├── user_repository.go      # User data access
 │   │   ├── event_repository.go     # Event data access
-│   │   └── registration_repository.go  # Registration data access
+│   │   ├── registration_repository.go  # Registration data access
+│   │   └── notific_repo.go         # Notification data access
 │   │                               # - Database operations (CRUD)
 │   │                               # - Query building
 │   │                               # - Data mapping
@@ -117,7 +122,8 @@ backend/
 │       ├── auth_service.go         # Authentication logic
 │       ├── event_service.go        # Event business logic
 │       ├── registration_service.go # Registration logic
-│       └── user_service.go         # User management logic
+│       ├── user_service.go         # User management logic
+│       └── notific_service.go      # Notification logic
 │                                   # - Use cases
 │                                   # - Business rules
 │                                   # - Orchestration
@@ -384,32 +390,39 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 │ deleted_at      │  │
 └─────────────────┘  │
                      │
-         ┌───────────┴───────────┐
-         │                       │
-         │                       │
-    ┌────▼──────────┐      ┌────▼────────────────┐
-    │    events     │      │   registrations     │
-    ├───────────────┤      ├─────────────────────┤
-    │ id (PK)       │──────│ id (PK)             │
-    │ organizer_id  │      │ user_id (FK)        │
-    │ (FK → users)  │      │ event_id (FK)       │
-    │ title         │      │ status              │
-    │ description   │      │ registered_at       │
-    │ start_datetime│      │ created_at          │
-    │ end_datetime  │      │ updated_at          │
-    │ location      │      │ deleted_at          │
-    │ capacity      │      └─────────────────────┘
-    │ status        │            │
-    │ created_at    │            │
-    │ updated_at    │            │
-    │ deleted_at    │            │
-    └───────────────┘────────────┘
+         ┌───────────┴───────────────────┐
+         │                               │
+         │                               │
+    ┌────▼──────────┐            ┌──────▼─────────────┐
+    │    events     │            │  notifications     │
+    ├───────────────┤            ├────────────────────┤
+    │ id (PK)       │──┐         │ id (PK)            │
+    │ organizer_id  │  │         │ user_id (FK)       │
+    │ (FK → users)  │  │         │ title              │
+    │ title         │  │         │ message            │
+    │ description   │  │         │ read               │
+    │ start_datetime│  │         │ created_at         │
+    │ end_datetime  │  │         └────────────────────┘
+    │ location      │  │
+    │ capacity      │  │    ┌────▼────────────────┐
+    │ status        │  │    │   registrations     │
+    │ created_at    │  │    ├─────────────────────┤
+    │ updated_at    │  └────│ id (PK)             │
+    │ deleted_at    │       │ user_id (FK)        │
+    └───────────────┘       │ event_id (FK)       │
+                            │ status              │
+                            │ registered_at       │
+                            │ created_at          │
+                            │ updated_at          │
+                            │ deleted_at          │
+                            └─────────────────────┘
 ```
 
 ### Table Relationships
 
 - **users** (1) → (N) **events**: One user can organize many events
 - **users** (1) → (N) **registrations**: One user can register for many events
+- **users** (1) → (N) **notifications**: One user can have many notifications
 - **events** (1) → (N) **registrations**: One event can have many registrations
 
 ### Indexes
@@ -421,6 +434,8 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 - `events.status` - Index for status filtering
 - `registrations.user_id` - Index for user's registrations
 - `registrations.event_id` - Index for event's registrations
+- `notifications.user_id` - Index for user's notifications
+- `notifications.read` - Index for filtering unread notifications
 
 ### Soft Deletes
 
@@ -649,4 +664,4 @@ tests/
 
 ---
 
-**Questions or suggestions?** Open an issue on [GitHub](https://github.com/kimashii-dan/event-hub/issues)
+
