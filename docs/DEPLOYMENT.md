@@ -71,6 +71,10 @@ JWT_EXPIRATION_TIME=24h
 DB_MAX_OPEN_CONNS=25
 DB_MAX_IDLE_CONNS=5
 DB_CONN_MAX_LIFETIME=5m
+
+# Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 #### 3. Production Docker Compose File
@@ -99,6 +103,18 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: event_hub_redis
+    restart: always
+    networks:
+      - event_hub_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ..
@@ -113,6 +129,8 @@ services:
       - .env
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - event_hub_network

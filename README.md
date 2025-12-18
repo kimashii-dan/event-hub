@@ -43,7 +43,9 @@ backend/
 │   ├── handler/       # HTTP handlers (controllers)
 │   ├── middleware/    # HTTP middleware (auth, logging)
 │   ├── repository/    # Data access layer
-│   └── service/       # Business logic layer
+│   ├── service/       # Business logic layer
+│   ├── worker/        # Background job workers
+│   └── cache/         # Redis caching layer
 ├── pkg/               # Reusable packages
 │   ├── jwt/           # JWT token utilities
 │   └── response/      # Standardized API responses
@@ -55,6 +57,8 @@ backend/
 
 - **Framework**: Gin (HTTP web framework)
 - **Database**: PostgreSQL with GORM ORM
+- **Cache**: Redis (for event data)
+- **Concurrency**: Goroutines & Worker Pools (async notifications)
 - **Authentication**: JWT tokens
 - **Containerization**: Docker & Docker Compose
 - **Testing**: Go testing framework with testify
@@ -103,6 +107,10 @@ SERVER_PORT=8000
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key_min_32_chars
 JWT_EXPIRATION_TIME=24h
+
+# Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 >  **Security Note**: Always use strong, unique values for `DB_PASSWORD` and `JWT_SECRET` in production!

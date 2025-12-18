@@ -37,9 +37,9 @@ go mod download
 cp docker/.env.example docker/.env
 # Edit docker/.env with your configuration
 
-# 4. Start database with Docker
+# 4. Start database and redis with Docker
 cd docker
-docker compose up -d db
+docker compose up -d db redis
 
 # 5. Run application
 cd ..
@@ -57,6 +57,7 @@ github.com/golang-jwt/jwt/v5      // JWT authentication
 github.com/joho/godotenv          // Environment variables
 golang.org/x/crypto/bcrypt        // Password hashing
 github.com/stretchr/testify       // Testing assertions
+github.com/redis/go-redis/v9      // Redis client
 ```
 
 ## Development Workflow

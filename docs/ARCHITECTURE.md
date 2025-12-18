@@ -126,8 +126,15 @@ backend/
 │       └── notific_service.go      # Notification logic
 │                                   # - Use cases
 │                                   # - Business rules
+│                                   # - Business rules
 │                                   # - Orchestration
-│
+│   │
+│   ├── worker/                     # BACKGROUND JOBS
+│   │   └── notification_pool.go    # Worker pool for notifications
+│   │
+│   ├── cache/                      # CACHING LAYER
+│   │   └── redis_cache.go          # Redis client wrapper
+│   │
 ├── pkg/                            # SHARED UTILITIES
 │   ├── jwt/
 │   │   └── jwt.go                  # JWT token utilities
@@ -231,6 +238,24 @@ func (r *EventRepository) GetByID(id string) (*domain.Event, error) {
     return &event, nil
 }
 ```
+
+### 3.5. Cache Layer (`cache/`)
+
+**Purpose**: High-speed data retrieval
+
+**Responsibilities**:
+- Key-value storage (Redis)
+- Cache invalidation (TTL)
+- Read-through caching strategies
+
+### 3.6. Worker Layer (`worker/`)
+
+**Purpose**: Asynchronous background processing
+
+**Responsibilities**:
+- Offload heavy tasks from HTTP handlers
+- Manage concurrency with Worker Pool
+- Graceful shutdown of background jobs
 
 ### 4. Handler Layer (`handler/`)
 
@@ -370,6 +395,25 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 5. Response
    Handler → HTTP Response (200 OK)
    { "data": [...], "pagination": {...} }
+```
+
+### Example: Async Notification Flow
+
+```
+1. Trigger (e.g., Event Cancelled)
+   Service detects state change
+   │
+   ▼
+2. Push to Worker Pool
+   notificationService.SendNotification(...)
+   → Adds job to buffered channel
+   → Service returns immediately (Non-blocking)
+   │
+   ▼
+3. Worker Processing (Background)
+   Worker goroutine picks up job
+   → Simulates email sending (2s delay)
+   → Updates DB status to "sent"
 ```
 
 ## Database Schema
@@ -530,14 +574,25 @@ handler.NewAuthHandler(router, authService)
 **Benefits**:
 - Reusable logic
 - Clean separation
+- Clean separation
 - Easy to add/remove
+
+### 5. Worker Pool Pattern
+**Purpose**: Manage concurrency for background tasks
+
+**Benefits**:
+- Limits max concurrent goroutines (prevent OOM)
+- Asynchronous processing (fast API response)
+- Graceful handling of shutdowns
 
 ## Technology Stack
 
 ### Core Framework
 - **Gin**: High-performance HTTP web framework
 - **GORM**: ORM for database operations
+- **GORM**: ORM for database operations
 - **PostgreSQL**: Relational database
+- **Redis**: In-memory data store for caching
 
 ### Libraries
 - **jwt-go**: JWT token generation and validation
@@ -557,10 +612,10 @@ handler.NewAuthHandler(router, authService)
 - **Eager Loading**: Use `Preload` to avoid N+1 queries
 - **Pagination**: Always paginate large datasets
 
-### Caching Strategy (Future)
-- Redis for frequently accessed data
+### Caching Strategy (Implemented)
+- Redis for frequently accessed data (e.g., Event Details)
 - Cache invalidation on updates
-- TTL-based expiration
+- TTL-based expiration (10 minutes)
 
 ### Scaling Strategy
 - **Horizontal Scaling**: Stateless application (JWT tokens)
