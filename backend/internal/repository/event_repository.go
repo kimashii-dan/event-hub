@@ -108,7 +108,7 @@ func (r *EventRepository) GetEvents(req *domain.EventQueryRequest) ([]domain.Eve
 
 	// --- NEW FILTERS ---
 	if req.Title != "" {
-		query = query.Where("title LIKE ?", "%"+req.Title+"%") // поиск по заголовку
+		query = query.Where("title ILIKE ?", "%"+req.Title+"%") // поиск по заголовку
 	}
 	if req.Status != "" {
 		query = query.Where("status = ?", req.Status)
@@ -120,7 +120,7 @@ func (r *EventRepository) GetEvents(req *domain.EventQueryRequest) ([]domain.Eve
 		query = query.Where("organizer_id = ?", req.OrganizerID)
 	}
 	if req.Keyword != "" {
-		query = query.Where("description LIKE ?", "%"+req.Keyword+"%") // поиск по описанию
+		query = query.Where("description ILIKE ?", "%"+req.Keyword+"%") // поиск по описанию
 	}
 	if req.UpcomingOnly {
 		query = query.Where("start_datetime >= ?", time.Now())
