@@ -727,6 +727,181 @@ Get all events created by the authenticated user.
 
 ---
 
+### Update User Profile
+
+Update the authenticated user's profile information.
+
+**Endpoint:** `PATCH /users/me`
+
+**Authentication:** Required (JWT token)
+
+**Request Body:**
+All fields are optional. Only include fields you want to update.
+
+```json
+{
+  "name": "John Updated",
+  "email": "newemail@example.com",
+  "password": "newSecurePassword123"
+}
+```
+
+**Request Parameters:**
+
+| Field | Type | Required | Constraints | Description |
+|-------|------|----------|-------------|-------------|
+| name | string | No | Min 2 characters | User's full name |
+| email | string | No | Valid email format, unique | User's email address |
+| password | string | No | Min 8 characters | New password (will be hashed) |
+
+**Success Response (200 OK):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "newemail@example.com",
+  "name": "John Updated",
+  "role": "user",
+  "created_at": "2025-12-17T10:30:00Z",
+  "updated_at": "2025-12-18T14:20:00Z"
+}
+```
+
+**Error Responses:**
+
+*400 Bad Request - Validation Error:*
+```json
+{
+  "error": "validation_failed",
+  "message": "Password must be at least 8 characters"
+}
+```
+
+*409 Conflict - Email Already Exists:*
+```json
+{
+  "error": "email_already_exists",
+  "message": "User with this email already exists"
+}
+```
+
+---
+
+## Notification Endpoints
+
+### Get User Notifications
+
+Get all notifications for the authenticated user.
+
+**Endpoint:** `GET /notifications/`
+
+**Authentication:** Required (JWT token)
+
+**Success Response (200 OK):**
+```json
+{
+  "data": [
+    {
+      "id": "880e8400-e29b-41d4-a716-446655440003",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Event Published",
+      "message": "Your event 'Tech Conference 2025' has been published successfully.",
+      "read": false,
+      "created_at": "2025-12-18T10:30:00Z"
+    },
+    {
+      "id": "890e8400-e29b-41d4-a716-446655440004",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "New Registration",
+      "message": "A user has registered for your event 'Tech Conference 2025'.",
+      "read": true,
+      "created_at": "2025-12-18T09:15:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### Send Notification
+
+Send a notification to the authenticated user (or admin can specify user).
+
+**Endpoint:** `POST /notifications/`
+
+**Authentication:** Required (JWT token)
+
+**Request Body:**
+```json
+{
+  "title": "Welcome!",
+  "message": "Thank you for joining Event Hub."
+}
+```
+
+**Request Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title | string | Yes | Notification title |
+| message | string | Yes | Notification message content |
+
+**Success Response (200 OK):**
+```json
+{
+  "id": "880e8400-e29b-41d4-a716-446655440003",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Welcome!",
+  "message": "Thank you for joining Event Hub.",
+  "read": false,
+  "created_at": "2025-12-18T10:30:00Z"
+}
+```
+
+**Error Responses:**
+
+*400 Bad Request - Validation Error:*
+```json
+{
+  "error": "validation_failed",
+  "message": "Title and message are required"
+}
+```
+
+---
+
+### Mark Notification as Read
+
+Mark a specific notification as read.
+
+**Endpoint:** `PATCH /notifications/:id/read`
+
+**Authentication:** Required (JWT token)
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | UUID | Notification ID |
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "notification marked as read"
+}
+```
+
+**Error Responses:**
+
+*404 Not Found:*
+```json
+{
+  "error": "notification_not_found",
+  "message": "Notification with the specified ID does not exist"
+}
+```
+
+---
+
 ## Data Models
 
 ### User
@@ -771,6 +946,19 @@ Get all events created by the authenticated user.
   "event": Event,                // Event details (optional, in some responses)
   "status": "string",            // Registration status: "confirmed", "cancelled"
   "registered_at": "datetime"    // Registration timestamp
+}
+```
+
+### Notification
+
+```go
+{
+  "id": "UUID",                  // Unique identifier
+  "user_id": "UUID",             // ID of user receiving notification
+  "title": "string",             // Notification title
+  "message": "string",           // Notification message content
+  "read": "boolean",             // Read status (true if read, false if unread)
+  "created_at": "datetime"       // Notification creation timestamp
 }
 ```
 
@@ -844,4 +1032,3 @@ All error responses follow a consistent format:
 
 ---
 
-**Need help?** Open an issue on [GitHub](https://github.com/kimashii-dan/event-hub/issues)

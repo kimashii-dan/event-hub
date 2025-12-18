@@ -21,6 +21,8 @@
 -  **Secure Authentication**: JWT-based authentication with role-based access control
 -  **Event Management**: Create, update, publish, and cancel events with comprehensive metadata
 -  **User Registration**: Users can register for events with capacity management
+-  **User Profile Management**: Update profile information (name, email, password)
+-  **Notification System**: Real-time notifications for users with read/unread status
 -  **Advanced Filtering**: Search and filter events by date, capacity, and status
 -  **Pagination**: Efficient data retrieval with configurable page sizes
 -  **Docker Support**: Fully containerized with Docker Compose for easy deployment
@@ -153,7 +155,16 @@ Authorization: Bearer <your_jwt_token>
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | GET | `/users/me` | Get current user profile | Yes |
+| PATCH | `/users/me` | Update user profile | Yes |
 | GET | `/users/me/events` | Get user's created events | Yes |
+
+#### Notifications
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/notifications/` | Get user's notifications | Yes |
+| POST | `/notifications/` | Send notification to user | Yes |
+| PATCH | `/notifications/:id/read` | Mark notification as read | Yes |
 
 ### API Examples
 
